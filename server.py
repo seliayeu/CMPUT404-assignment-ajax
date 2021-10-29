@@ -80,13 +80,16 @@ def hello():
 def update(entity):
     '''update the entities via this interface'''
     if request.method == "PUT":
-        myWorld.set(entity, request.json)
-        return jsonify(myWorld.world());
+        res = request.json
+        if not res: res = flask_post_json()
+        myWorld.set(entity, res)
+        return jsonify(myWorld.get(entity));
     elif request.method == "POST":
         res = request.json
+        if not res: res = flask_post_json()
         for key in res:
             myWorld.update(entity, key, res[key])
-        return jsonify(myWorld.world());
+        return jsonify(myWorld.get(entity));
     # add error stuff 
     return None
 
