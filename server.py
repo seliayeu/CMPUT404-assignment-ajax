@@ -21,8 +21,9 @@
 #     pip install flask
 
 
+import re
 import flask
-from flask import Flask, request
+from flask import Flask, request, redirect, jsonify
 import json
 app = Flask(__name__)
 app.debug = True
@@ -73,28 +74,36 @@ def flask_post_json():
 
 @app.route("/")
 def hello():
-    '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return redirect("/static/index.html")
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
+    if request.method == "PUT":
+        myWorld.set(entity, request.json)
+        return jsonify(myWorld.world());
+    elif request.method == "POST":
+        res = request.json
+        for key in res:
+            myWorld.update(entity, key, res[key])
+        return jsonify(myWorld.world());
+    # add error stuff 
     return None
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
-    '''you should probably return the world here'''
-    return None
+    return jsonify(myWorld.world());
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
-    '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    '''This is the GET version of the entity interface, returns a representation of the entity'''
+    return jsonify(myWorld.get(entity));
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+    myWorld.clear();
+    return jsonify(myWorld.world());
 
 if __name__ == "__main__":
     app.run()
