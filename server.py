@@ -20,6 +20,10 @@
 # remember to:
 #     pip install flask
 
+# Modifications to the code licensed under CC BY-SA 4.0 by Danila Seliayeu, 
+ #2021 https://creativecommons.org/licenses/by-sa/4.0/
+
+
 
 import re
 import flask
@@ -42,18 +46,37 @@ class World:
         entry = self.space.get(entity,dict())
         entry[key] = value
         self.space[entity] = entry
+        self.notify_all(entity, self.space[entity])
 
     def set(self, entity, data):
         self.space[entity] = data
+        self.notify_all(entity, data)
 
     def clear(self):
         self.space = dict()
+        self.listeners = dict()
 
     def get(self, entity):
         return self.space.get(entity,dict())
     
     def world(self):
         return self.space
+
+# code below referenced from https://github.com/uofa-cmput404/cmput404-slides/tree/master/examples/ObserverExampleAJAX
+# which is written by Hazel Campbell
+
+    def add_listener(self, listener):
+        self.listeners[listener] = dict()
+    
+    def get_listener(self, listener):
+        return self.listeners[listener]
+    
+    def clear_listener(self, listener):
+        self.listeners[listener] = dict()
+
+    def notify_all(self, entity, data):
+        for listener in self.listeners:
+            self.listeners[listener][entity] = data
 
 # you can test your webservice from the commandline
 # curl -v   -H "Content-Type: application/json" -X PUT http://127.0.0.1:5000/entity/X -d '{"x":1,"y":1}' 
@@ -89,7 +112,7 @@ def update(entity):
         if not res: res = flask_post_json()
         for key in res:
             myWorld.update(entity, key, res[key])
-        return jsonify(myWorld.get(entity));
+        return jsonify(myWorld.world());
     # add error stuff 
     return None
 
@@ -107,6 +130,21 @@ def clear():
     '''Clear the world out!'''
     myWorld.clear();
     return jsonify(myWorld.world());
+
+# listener-related code below taken from https://github.com/uofa-cmput404/cmput404-slides/tree/master/examples/ObserverExampleAJAX
+# which is written by Hazel Campbell
+@app.route("/listener/<entity>", methods=['POST','PUT'])
+def add_listener(entity):
+    myWorld.add_listener( entity )
+    return jsonify(dict())
+
+@app.route("/listener/<entity>")    
+def get_listener(entity):
+    v = myWorld.get_listener(entity)
+    myWorld.clear_listener(entity)
+    return jsonify( v )
+
+
 
 if __name__ == "__main__":
     app.run()

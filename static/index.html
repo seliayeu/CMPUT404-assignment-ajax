@@ -19,11 +19,37 @@
         WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         See the License for the specific language governing permissions and
         limitations under the License.
+
+        Modifications to the code licensed under CC BY-SA 4.0 by Danila Seliayeu, 
+        2021 https://creativecommons.org/licenses/by-sa/4.0/
     "/>
     <script src="json2.js"></script>
   </head> 
-  <body bgcolor="black" height="100%" width="100%"> 
-    <canvas id="c" width="100%" height="100%" style="-webkit-tap-highlight-color: transparent;"></canvas> 
+  <style>
+      body {
+          margin: 0;
+          width: 100vw;
+          height: 100vh;
+          background-image: url("royaltyfreebg.png");
+          background-size: 100%;
+          background-repeat: no-repeat;
+      }
+      #c {
+          margin: auto;
+          width: 100%;
+          height: 100%;
+      }
+      #bg {
+          margin: 0;
+          width: 100vw;
+          height: 100vh;
+          background-image: url("royaltyfreebg.png");
+          background-size: 100% 200%;
+          background-repeat: no-repeat;
+      }
+  </style>
+  <body> 
+    <canvas id="c"></canvas> 
     <script>
 var canvas = document.getElementById('c');
 var host = window.location.host;
@@ -31,6 +57,9 @@ var context = canvas.getContext("2d");
 var W = canvas.width  = window.innerWidth-6;
 var H = canvas.height = window.innerHeight-50;
 
+// following code for creating listener id taken from https://github.com/uofa-cmput404/cmput404-slides/blob/master/examples/ObserverExampleAJAX/static/observer.js
+// written by Hazel Campbell
+var id = "L"+Math.floor(20000000*Math.random());
 
 function sendJSONXMLHTTPRequest(url, objects, callback) {
     var xhr = new XMLHttpRequest();
@@ -50,10 +79,29 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
     xhr.setRequestHeader("Accept", "application/json");
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(JSON.stringify(objects));
-    //XXX: POST to a URL
-    //XXX: set the mimetype and the accept headers!
-    // Remember to use application/json !
 }
+
+const addListener = () => {
+    const resp = fetch(`http://127.0.0.1:5000/listener/${id}`, { 
+        method: "POST",
+    }).then((resp) => console.log(resp.json()))
+};
+
+const listen = () => {
+    const resp = fetch(`http://127.0.0.1:5000/listener/${id}`, { 
+        method: "GET",
+        headers: {
+            "Accept": "application/json"
+        }
+    }).then((resp) => resp.json())
+    .then((updates) => {
+        for (const key in updates) {
+            // make sure redrawn after this
+            drawNextFrame();
+            world[key] = updates[key];
+        }
+    })
+};
 
 
 world = {};
@@ -87,10 +135,11 @@ function prepEntity(entity) {
 }
 
 function clearFrame() {
+    const img = document.createElement("img")
     with(context) {
-	moveTo(0,0);
-	fillStyle = "#000";
-	fillRect(0,0,W,H);
+    clearRect(0, 0, W, H);
+    img.id = "bg";
+    drawImage(img, 0, 0);
     }
 
 }
@@ -255,7 +304,7 @@ mouse.mousedowners.push(function(x, y) {
     addEntityWithoutName({ 
         x, 
         y, 
-        'colour':'blue',
+        'colour':'hotpink',
     });
 });
 
@@ -263,7 +312,7 @@ mouse.mouseuppers.push(function(x, y) {
     addEntityWithoutName({
         x, 
         y, 
-        'colour':'red',
+        'colour':'snow',
     });
 });
 
@@ -271,28 +320,28 @@ mouse.mousedraggers.push(function(x, y) {
     addEntityWithoutName({
         x, 
         y, 
-        'colour':'green',
+        'colour':'skyblue',
         'radius': 10,
     });
 });
 
 
 function update() {
-    sendJSONXMLHTTPRequest("world", {}, (res) => { 
-        res = JSON.parse(res);
-        if (res !== world) {
-            world = res
-            drawNextFrame();
-        }
-     });
+    listen(); 
     drawFrame();
 }
 
+// add listener
+addListener();
+sendJSONXMLHTTPRequest("/world", {}, (res) => {
+    world = JSON.parse(res);
+    drawNextFrame();
+});
+
+// initially render frame
+drawFrame();
 // 30 frames per second
 setInterval( update, 1000/30.0);
-
-
-
     </script>
 </body>
 </html>
