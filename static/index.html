@@ -30,22 +30,15 @@
           margin: 0;
           width: 100vw;
           height: 100vh;
-          background-image: url("royaltyfreebg.png");
           background-size: 100%;
+          background: rgb(63,94,251);
+          background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%);
           background-repeat: no-repeat;
       }
       #c {
           margin: auto;
           width: 100%;
           height: 100%;
-      }
-      #bg {
-          margin: 0;
-          width: 100vw;
-          height: 100vh;
-          background-image: url("royaltyfreebg.png");
-          background-size: 100% 200%;
-          background-repeat: no-repeat;
       }
   </style>
   <body> 
@@ -135,11 +128,8 @@ function prepEntity(entity) {
 }
 
 function clearFrame() {
-    const img = document.createElement("img")
     with(context) {
-    clearRect(0, 0, W, H);
-    img.id = "bg";
-    drawImage(img, 0, 0);
+        clearRect(0, 0, W, H);
     }
 
 }
@@ -304,7 +294,7 @@ mouse.mousedowners.push(function(x, y) {
     addEntityWithoutName({ 
         x, 
         y, 
-        'colour':'hotpink',
+        'colour':'magenta',
     });
 });
 
@@ -312,7 +302,7 @@ mouse.mouseuppers.push(function(x, y) {
     addEntityWithoutName({
         x, 
         y, 
-        'colour':'snow',
+        'colour':'skyblue',
     });
 });
 
@@ -320,7 +310,7 @@ mouse.mousedraggers.push(function(x, y) {
     addEntityWithoutName({
         x, 
         y, 
-        'colour':'skyblue',
+        'colour':'snow',
         'radius': 10,
     });
 });
